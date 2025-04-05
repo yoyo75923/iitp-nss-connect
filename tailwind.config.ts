@@ -1,3 +1,4 @@
+
 import type { Config } from "tailwindcss";
 
 export default {
@@ -61,6 +62,14 @@ export default {
 					'accent-foreground': 'hsl(var(--sidebar-accent-foreground))',
 					border: 'hsl(var(--sidebar-border))',
 					ring: 'hsl(var(--sidebar-ring))'
+				},
+				nss: {
+					primary: '#14284B', // Dark blue like in the login button
+					secondary: '#F0F4F8', // Light blue-gray for backgrounds
+					accent: '#4A90E2', // Accent blue for highlights
+					success: '#2E7D32', // Green for success messages
+					warning: '#FF9800', // Orange for warnings
+					error: '#D32F2F', // Red for errors
 				}
 			},
 			borderRadius: {
@@ -84,11 +93,16 @@ export default {
 					to: {
 						height: '0'
 					}
+				},
+				'slide': {
+					'0%': { transform: 'translateX(100%)' },
+					'100%': { transform: 'translateX(-100%)' }
 				}
 			},
 			animation: {
 				'accordion-down': 'accordion-down 0.2s ease-out',
-				'accordion-up': 'accordion-up 0.2s ease-out'
+				'accordion-up': 'accordion-up 0.2s ease-out',
+				'slide': 'slide 15s linear infinite'
 			}
 		}
 	},
