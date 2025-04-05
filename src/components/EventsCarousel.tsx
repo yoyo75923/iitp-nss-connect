@@ -75,13 +75,25 @@ const EventsCarousel = () => {
     return new Date(dateString).toLocaleDateString(undefined, options);
   };
 
+  // Update current slide index when the API provides it
+  useEffect(() => {
+    if (!api) return;
+    
+    api.on("select", () => {
+      setCurrent(api.selectedScrollSnap());
+    });
+    
+    return () => {
+      api.off("select", () => {});
+    };
+  }, [api]);
+
   return (
     <div className="w-full px-4 py-2">
       <h2 className="text-xl font-semibold mb-3">Upcoming Events</h2>
       <Carousel
         setApi={setApi}
         className="w-full"
-        onSelect={(index: number) => setCurrent(index)}
       >
         <CarouselContent>
           {events.map((event) => (
