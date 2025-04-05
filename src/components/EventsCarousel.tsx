@@ -37,7 +37,7 @@ const MOCK_EVENTS = [
     time: '08:00 AM - 11:00 AM',
     location: 'Campus Garden',
     image: '/placeholder.svg',
-    description: 'Let\'s make our campus greener by planting more trees.'
+    description: "Let's make our campus greener by planting more trees."
   },
   {
     id: 4,

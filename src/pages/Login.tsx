@@ -1,22 +1,29 @@
 
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
-import { useAuth } from "@/contexts/AuthContext";
+import { useAuth } from "@/contexts/MockAuthContext";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 
 const Login = () => {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [isLoading, setIsLoading] = useState(false);
-  const { login } = useAuth();
+  const { login, isAuthenticated } = useAuth();
   const navigate = useNavigate();
+
+  // Redirect if already authenticated
+  useEffect(() => {
+    if (isAuthenticated) {
+      navigate('/dashboard');
+    }
+  }, [isAuthenticated, navigate]);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     
-    if (!email || !password) {
+    if (!email) {
       return;
     }
     
@@ -26,8 +33,7 @@ const Login = () => {
       const success = await login(email, password);
       
       if (success) {
-        // Navigate based on user role (handled in App.tsx with protected routes)
-        navigate('/dashboard');
+        // Navigation handled by the effect above
       }
     } finally {
       setIsLoading(false);
@@ -39,6 +45,9 @@ const Login = () => {
       <Card className="w-full max-w-md shadow-lg">
         <CardHeader className="space-y-1 text-center">
           <CardTitle className="text-2xl font-bold">NSS Portal Login</CardTitle>
+          <CardDescription>
+            Enter your credentials to access the NSS Portal
+          </CardDescription>
         </CardHeader>
         <CardContent>
           <form onSubmit={handleSubmit} className="space-y-4">
@@ -72,6 +81,15 @@ const Login = () => {
               {isLoading ? "Signing In..." : "Sign In"}
             </Button>
           </form>
+          
+          <div className="mt-6 p-4 bg-blue-50 rounded-lg">
+            <h3 className="text-sm font-semibold text-blue-900 mb-2">Demo Accounts:</h3>
+            <ul className="text-xs space-y-1 text-blue-800">
+              <li>Volunteer: volunteer@iitp.ac.in (any password)</li>
+              <li>Mentor: mentor@iitp.ac.in (any password)</li>
+              <li>Secretary: secretary@iitp.ac.in (any password)</li>
+            </ul>
+          </div>
         </CardContent>
       </Card>
     </div>

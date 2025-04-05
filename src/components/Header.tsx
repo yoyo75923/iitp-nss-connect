@@ -1,6 +1,6 @@
 
-import React, { useState } from 'react';
-import { useAuth } from '@/contexts/AuthContext';
+import React from 'react';
+import { useAuth } from '@/contexts/MockAuthContext';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
 import { Button } from '@/components/ui/button';
@@ -50,6 +50,7 @@ const Header = () => {
               <div>
                 <h3 className="font-medium text-lg">{user?.name}</h3>
                 <p className="text-sm text-muted-foreground">{user?.email}</p>
+                <p className="text-xs font-medium text-nss-primary mt-1 capitalize">{user?.role}</p>
               </div>
             </div>
             
@@ -80,6 +81,19 @@ const Header = () => {
                   <div className="flex justify-between">
                     <span className="text-sm text-muted-foreground">Volunteers:</span>
                     <span className="text-sm font-medium">{user.volunteers?.length || 0}</span>
+                  </div>
+                </>
+              )}
+              
+              {user?.role === 'secretary' && (
+                <>
+                  <div className="flex justify-between">
+                    <span className="text-sm text-muted-foreground">Position:</span>
+                    <span className="text-sm font-medium">NSS General Secretary</span>
+                  </div>
+                  <div className="flex justify-between">
+                    <span className="text-sm text-muted-foreground">Wings Managed:</span>
+                    <span className="text-sm font-medium">All Wings</span>
                   </div>
                 </>
               )}
