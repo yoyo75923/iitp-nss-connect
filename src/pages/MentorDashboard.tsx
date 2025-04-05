@@ -4,7 +4,7 @@ import Header from '@/components/Header';
 import EventsCarousel from '@/components/EventsCarousel';
 import FeatureCard from '@/components/FeatureCard';
 import { Users, CalendarClock, ImagePlus, MessageSquare, BookHeart, Droplets, Heart, ShoppingBag } from 'lucide-react';
-import { useAuth } from '@/contexts/AuthContext';
+import { useAuth } from '@/contexts/MockAuthContext';
 import { Card, CardContent } from '@/components/ui/card';
 
 const MentorDashboard = () => {
