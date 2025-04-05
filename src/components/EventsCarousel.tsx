@@ -81,7 +81,7 @@ const EventsCarousel = () => {
       <Carousel
         setApi={setApi}
         className="w-full"
-        onSelect={(index) => setCurrent(index)}
+        onSelect={(index: number) => setCurrent(index)}
       >
         <CarouselContent>
           {events.map((event) => (
