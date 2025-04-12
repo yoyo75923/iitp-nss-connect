@@ -1,6 +1,8 @@
 
 export type UserRole = 'volunteer' | 'mentor' | 'secretary';
 
+export type AttendanceType = 'present' | 'absent' | 'late';
+
 export interface User {
   id: string;
   name: string;
@@ -10,6 +12,23 @@ export interface User {
   wing?: string;
   mentor?: string;
   volunteers?: string[];
+  volunteerObjects?: User[];
+  totalHours?: number;
+  eventsAttended?: number;
+}
+
+export interface VolunteerData {
+  id: string;
+  userId: string;
+  mentorId: string;
+  totalHours: number;
+  eventsAttended: number;
+}
+
+export interface MentorData {
+  id: string;
+  userId: string;
+  menteeCount: number;
 }
 
 export interface AttendanceRecord {
@@ -20,6 +39,9 @@ export interface AttendanceRecord {
   venue: string;
   hours: number;
   volunteerId: string;
+  volunteerName?: string;
+  attendanceType: AttendanceType;
+  timestamp: number;
 }
 
 export interface Event {
@@ -30,34 +52,30 @@ export interface Event {
   location: string;
   description: string;
   image: string;
+  durationHours: number;
+  isActive: boolean;
+  createdBy?: string;
 }
 
-export interface BloodRequest {
-  id: string;
-  patientName: string;
-  bloodGroup: string;
-  hospital: string;
-  contactNumber: string;
-  urgency: 'high' | 'medium' | 'low';
-  postedDate: string;
+export interface QRCodeData {
+  eventId: string;
+  eventName: string;
+  timestamp: number;
+  hours: number;
+  randomStr?: string;
 }
 
-export interface FundRaisingCampaign {
+export interface Gallery {
   id: string;
+  eventId: string;
   title: string;
-  description: string;
-  targetAmount: number;
-  raisedAmount: number;
-  startDate: string;
-  endDate: string;
-  image: string;
+  photos: Photo[];
 }
 
-export interface SouvenirItem {
+export interface Photo {
   id: string;
-  name: string;
-  description: string;
-  price: number;
-  image: string;
-  available: boolean;
+  galleryId: string;
+  uploadedBy: string;
+  imagePath: string;
+  uploadDate: string;
 }

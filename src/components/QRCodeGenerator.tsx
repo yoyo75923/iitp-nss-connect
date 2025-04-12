@@ -1,12 +1,14 @@
 
 import React, { useState, useEffect, useRef } from 'react';
 import QRCode from 'react-qr-code';
-import { toPng } from 'html-to-image';
 import { useIsMobile } from '@/hooks/use-mobile';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent } from '@/components/ui/card';
 import { toast } from '@/components/ui/use-toast';
 import { RefreshCw } from 'lucide-react';
+import { Input } from '@/components/ui/input';
+import { Label } from '@/components/ui/label';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 
 interface QRCodeGeneratorProps {
   eventId: string;
@@ -17,6 +19,7 @@ const QRCodeGenerator: React.FC<QRCodeGeneratorProps> = ({ eventId, eventName })
   const [qrValue, setQrValue] = useState<string>('');
   const [isGenerating, setIsGenerating] = useState<boolean>(false);
   const [timeLeft, setTimeLeft] = useState<number>(0);
+  const [hours, setHours] = useState<number>(2); // Default hours
   const qrRef = useRef<HTMLDivElement>(null);
   const isMobile = useIsMobile();
   
@@ -28,6 +31,7 @@ const QRCodeGenerator: React.FC<QRCodeGeneratorProps> = ({ eventId, eventName })
       eventId,
       eventName,
       timestamp,
+      hours,
       randomStr,
     });
   };
@@ -39,7 +43,7 @@ const QRCodeGenerator: React.FC<QRCodeGeneratorProps> = ({ eventId, eventName })
     setTimeLeft(5);
     toast({
       title: "QR Code Generated",
-      description: "QR code will refresh every 5 seconds"
+      description: `QR code will refresh every 5 seconds. Hours: ${hours}`
     });
   };
 
@@ -55,21 +59,27 @@ const QRCodeGenerator: React.FC<QRCodeGeneratorProps> = ({ eventId, eventName })
   // Download QR code as image
   const handleDownloadQR = () => {
     if (qrRef.current) {
-      toPng(qrRef.current)
-        .then((dataUrl) => {
-          const link = document.createElement('a');
-          link.download = `nss-attendance-qr-${new Date().getTime()}.png`;
-          link.href = dataUrl;
-          link.click();
-        })
-        .catch((err) => {
-          console.error('Error downloading QR code:', err);
-          toast({
-            title: "Download Failed",
-            description: "Could not download QR code",
-            variant: "destructive"
-          });
-        });
+      const canvas = document.createElement("canvas");
+      const svg = qrRef.current.querySelector("svg");
+      
+      if (svg) {
+        const svgData = new XMLSerializer().serializeToString(svg);
+        const img = new Image();
+        img.onload = () => {
+          canvas.width = img.width;
+          canvas.height = img.height;
+          const ctx = canvas.getContext("2d");
+          if (ctx) {
+            ctx.drawImage(img, 0, 0);
+            const pngFile = canvas.toDataURL("image/png");
+            const downloadLink = document.createElement("a");
+            downloadLink.download = `nss-attendance-qr-${new Date().getTime()}.png`;
+            downloadLink.href = pngFile;
+            downloadLink.click();
+          }
+        };
+        img.src = "data:image/svg+xml;base64," + btoa(svgData);
+      }
     }
   };
 
@@ -92,13 +102,38 @@ const QRCodeGenerator: React.FC<QRCodeGeneratorProps> = ({ eventId, eventName })
     return () => {
       if (timer) clearInterval(timer);
     };
-  }, [isGenerating, eventId, eventName]);
+  }, [isGenerating, eventId, eventName, hours]);
 
   return (
     <Card className="w-full">
       <CardContent className="p-4">
         <div className="flex flex-col items-center space-y-4">
           <h3 className="text-lg font-medium">QR Code for Attendance</h3>
+          
+          <div className="w-full">
+            <div className="grid gap-3 mb-4">
+              <div>
+                <Label htmlFor="hours">Attendance Hours</Label>
+                <Select
+                  value={hours.toString()}
+                  onValueChange={(value) => setHours(Number(value))}
+                >
+                  <SelectTrigger>
+                    <SelectValue placeholder="Select hours" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="1">1 Hour</SelectItem>
+                    <SelectItem value="2">2 Hours</SelectItem>
+                    <SelectItem value="3">3 Hours</SelectItem>
+                    <SelectItem value="4">4 Hours</SelectItem>
+                    <SelectItem value="5">5 Hours</SelectItem>
+                    <SelectItem value="6">6 Hours</SelectItem>
+                    <SelectItem value="8">8 Hours</SelectItem>
+                  </SelectContent>
+                </Select>
+              </div>
+            </div>
+          </div>
           
           {!isGenerating ? (
             <Button onClick={handleGenerateQR} className="w-full md:w-auto">

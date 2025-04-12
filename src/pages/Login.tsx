@@ -5,6 +5,7 @@ import { useAuth } from "@/contexts/MockAuthContext";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
+import { toast } from "sonner";
 
 const Login = () => {
   const [email, setEmail] = useState("");
@@ -24,6 +25,13 @@ const Login = () => {
     e.preventDefault();
     
     if (!email) {
+      toast.error("Email is required");
+      return;
+    }
+    
+    // Validate email format
+    if (!email.endsWith('@iitp.ac.in')) {
+      toast.error("Only @iitp.ac.in email addresses are allowed");
       return;
     }
     
@@ -32,9 +40,10 @@ const Login = () => {
     try {
       const success = await login(email, password);
       
-      if (success) {
-        // Navigation handled by the effect above
+      if (!success) {
+        toast.error("Login failed. Please check your credentials.");
       }
+      // If success, navigation handled by the effect above
     } finally {
       setIsLoading(false);
     }
@@ -56,7 +65,7 @@ const Login = () => {
               <Input
                 id="email"
                 type="email"
-                placeholder="Enter your email"
+                placeholder="Enter your email (only @iitp.ac.in)"
                 value={email}
                 onChange={(e) => setEmail(e.target.value)}
                 className="w-full px-3 py-2"
@@ -83,11 +92,11 @@ const Login = () => {
           </form>
           
           <div className="mt-6 p-4 bg-blue-50 rounded-lg">
-            <h3 className="text-sm font-semibold text-blue-900 mb-2">Demo Accounts:</h3>
+            <h3 className="text-sm font-semibold text-blue-900 mb-2">Authorized Accounts:</h3>
             <ul className="text-xs space-y-1 text-blue-800">
-              <li>Volunteer: volunteer@iitp.ac.in (any password)</li>
-              <li>Mentor: mentor@iitp.ac.in (any password)</li>
-              <li>Secretary: secretary@iitp.ac.in (any password)</li>
+              <li>Volunteer: aaravmehta@iitp.ac.in (any password)</li>
+              <li>Mentor: kavyabansal@iitp.ac.in (any password)</li>
+              <li>Secretary: riyakapoor@iitp.ac.in (any password)</li>
             </ul>
           </div>
         </CardContent>

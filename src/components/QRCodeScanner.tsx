@@ -4,10 +4,11 @@ import Webcam from 'react-webcam';
 import { Card, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { toast } from '@/components/ui/use-toast';
-import { Camera, ImageOff, RefreshCw } from 'lucide-react';
+import { Camera, ImageOff } from 'lucide-react';
+import { QRCodeData } from '@/types/user';
 
 interface QRCodeScannerProps {
-  onScan: (data: string) => void;
+  onScan: (data: QRCodeData) => void;
 }
 
 const QRCodeScanner: React.FC<QRCodeScannerProps> = ({ onScan }) => {
@@ -19,20 +20,30 @@ const QRCodeScanner: React.FC<QRCodeScannerProps> = ({ onScan }) => {
   const handleCapture = useCallback(() => {
     const imageSrc = webcamRef.current?.getScreenshot();
     if (imageSrc) {
-      // Mock successful scan
-      const mockQrData = JSON.stringify({
-        eventId: "event123",
-        eventName: "NSS Camp",
-        timestamp: new Date().getTime(),
-      });
-      
-      onScan(mockQrData);
-      setIsScanning(false);
-      
-      toast({
-        title: "QR Code Scanned",
-        description: "Attendance marked successfully!",
-      });
+      try {
+        // Mock successful scan
+        const mockQrData: QRCodeData = {
+          eventId: "event123",
+          eventName: "NSS Camp",
+          timestamp: new Date().getTime(),
+          hours: 2,
+        };
+        
+        onScan(mockQrData);
+        setIsScanning(false);
+        
+        toast({
+          title: "QR Code Scanned",
+          description: `Attendance marked for ${mockQrData.eventName} (+${mockQrData.hours} hours)`,
+        });
+      } catch (error) {
+        console.error("Error processing QR code:", error);
+        toast({
+          title: "Error Scanning QR Code",
+          description: "Please try again",
+          variant: "destructive"
+        });
+      }
     }
   }, [onScan]);
   

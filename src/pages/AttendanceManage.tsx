@@ -1,5 +1,5 @@
 
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { useAuth } from '@/contexts/MockAuthContext';
@@ -7,24 +7,47 @@ import Header from '@/components/Header';
 import QRCodeGenerator from '@/components/QRCodeGenerator';
 import VolunteersList from '@/components/VolunteersList';
 import { Volunteer } from '@/components/VolunteersList';
+import { AttendanceRecord, User } from '@/types/user';
+import Footer from '@/components/Footer';
 
 const AttendanceManage = () => {
   const { user } = useAuth();
-  
-  // Mock event
-  const event = {
+  const [volunteers, setVolunteers] = useState<Volunteer[]>([]);
+  const [selectedEvent, setSelectedEvent] = useState({
     id: 'event-001',
     name: 'NSS Weekly Meeting',
-  };
+  });
   
-  // Mock volunteers data
-  const [volunteers, setVolunteers] = useState<Volunteer[]>([
-    { id: "vol1", name: "John Doe", rollNumber: "2023CS01", totalHours: 12 },
-    { id: "vol3", name: "Amit Singh", rollNumber: "2023EC05", totalHours: 8 },
-    { id: "vol4", name: "Priya Sharma", rollNumber: "2023CS09", totalHours: 15 },
-    { id: "vol5", name: "Rahul Kumar", rollNumber: "2023ME03", totalHours: 6 },
-    { id: "vol6", name: "Neha Gupta", rollNumber: "2023EE07", totalHours: 10 },
-  ]);
+  useEffect(() => {
+    // Get volunteers for the current mentor
+    if (user && user.role === 'mentor' && user.volunteerObjects) {
+      // Get attendance records
+      const savedRecordsStr = sessionStorage.getItem('attendanceRecords');
+      const savedRecords: AttendanceRecord[] = savedRecordsStr ? JSON.parse(savedRecordsStr) : [];
+      
+      // Map volunteer objects to volunteer list
+      const volunteerList = user.volunteerObjects.map(volunteer => {
+        // Get records for this volunteer
+        const volunteerRecords = savedRecords.filter(
+          record => record.volunteerId === volunteer.id
+        );
+        
+        // Calculate total hours
+        const totalHours = volunteerRecords.reduce(
+          (sum, record) => sum + record.hours, 0
+        );
+        
+        return {
+          id: volunteer.id,
+          name: volunteer.name,
+          rollNumber: volunteer.rollNumber || 'N/A',
+          totalHours: totalHours
+        };
+      });
+      
+      setVolunteers(volunteerList);
+    }
+  }, [user]);
 
   return (
     <div className="flex flex-col min-h-screen bg-gray-50">
@@ -46,11 +69,12 @@ const AttendanceManage = () => {
                 <CardHeader>
                   <CardTitle>Generate Attendance QR Code</CardTitle>
                   <CardDescription>
-                    Create a QR code for volunteers to scan and mark their attendance
+                    Create a QR code for volunteers to scan and mark their attendance. 
+                    Choose the number of hours to award.
                   </CardDescription>
                 </CardHeader>
                 <CardContent>
-                  <QRCodeGenerator eventId={event.id} eventName={event.name} />
+                  <QRCodeGenerator eventId={selectedEvent.id} eventName={selectedEvent.name} />
                 </CardContent>
               </Card>
             </TabsContent>
@@ -71,6 +95,8 @@ const AttendanceManage = () => {
           </Tabs>
         </div>
       </main>
+      
+      <Footer />
     </div>
   );
 };
