@@ -11,6 +11,9 @@ import Login from "./pages/Login";
 import Dashboard from "./pages/Dashboard";
 import FeaturePlaceholder from "./pages/FeaturePlaceholder";
 import NotFound from "./pages/NotFound";
+import AttendanceManage from "./pages/AttendanceManage";
+import AttendanceScan from "./pages/AttendanceScan";
+import AttendanceHistory from "./pages/AttendanceHistory";
 
 const queryClient = new QueryClient();
 
@@ -35,17 +38,17 @@ const App = () => (
             {/* Feature routes */}
             <Route path="/attendance/scan" element={
               <ProtectedRoute>
-                <FeaturePlaceholder />
+                <AttendanceScan />
               </ProtectedRoute>
             } />
             <Route path="/attendance/history" element={
               <ProtectedRoute>
-                <FeaturePlaceholder />
+                <AttendanceHistory />
               </ProtectedRoute>
             } />
             <Route path="/attendance/manage" element={
               <ProtectedRoute>
-                <FeaturePlaceholder />
+                <AttendanceManage />
               </ProtectedRoute>
             } />
             <Route path="/gallery" element={
