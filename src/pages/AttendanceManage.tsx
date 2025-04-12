@@ -10,6 +10,15 @@ import { Volunteer } from '@/components/VolunteersList';
 import { AttendanceRecord, User } from '@/types/user';
 import Footer from '@/components/Footer';
 
+// Sample events data - in a real app, this would come from an API or database
+const SAMPLE_EVENTS = [
+  { id: 'event-001', name: 'NSS Weekly Meeting' },
+  { id: 'event-002', name: 'Blood Donation Camp' },
+  { id: 'event-003', name: 'Tree Plantation Drive' },
+  { id: 'event-004', name: 'Community Cleanup' },
+  { id: 'event-005', name: 'Awareness Workshop' },
+];
+
 const AttendanceManage = () => {
   const { user } = useAuth();
   const [volunteers, setVolunteers] = useState<Volunteer[]>([]);
@@ -69,12 +78,16 @@ const AttendanceManage = () => {
                 <CardHeader>
                   <CardTitle>Generate Attendance QR Code</CardTitle>
                   <CardDescription>
-                    Create a QR code for volunteers to scan and mark their attendance. 
-                    Choose the number of hours to award.
+                    Start attendance for an event by creating a QR code for volunteers to scan. 
+                    Specify the event and hours to award.
                   </CardDescription>
                 </CardHeader>
                 <CardContent>
-                  <QRCodeGenerator eventId={selectedEvent.id} eventName={selectedEvent.name} />
+                  <QRCodeGenerator 
+                    eventId={selectedEvent.id} 
+                    eventName={selectedEvent.name}
+                    events={SAMPLE_EVENTS}
+                  />
                 </CardContent>
               </Card>
             </TabsContent>
