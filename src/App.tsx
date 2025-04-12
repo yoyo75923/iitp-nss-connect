@@ -21,70 +21,68 @@ const queryClient = new QueryClient();
 
 const App = () => (
   <QueryClientProvider client={queryClient}>
-    <TooltipProvider>
+    <BrowserRouter>
       <MockAuthProvider>
+        <Routes>
+          {/* Public routes */}
+          <Route path="/" element={<Login />} />
+          
+          {/* Protected routes */}
+          <Route path="/dashboard" element={
+            <ProtectedRoute>
+              <Dashboard />
+            </ProtectedRoute>
+          } />
+          
+          {/* Feature routes */}
+          <Route path="/attendance/scan" element={
+            <ProtectedRoute>
+              <AttendanceScan />
+            </ProtectedRoute>
+          } />
+          <Route path="/attendance/history" element={
+            <ProtectedRoute>
+              <AttendanceHistory />
+            </ProtectedRoute>
+          } />
+          <Route path="/attendance/manage" element={
+            <ProtectedRoute>
+              <AttendanceManage />
+            </ProtectedRoute>
+          } />
+          <Route path="/gallery" element={
+            <ProtectedRoute>
+              <GalleryPage />
+            </ProtectedRoute>
+          } />
+          <Route path="/gallery/upload" element={
+            <ProtectedRoute>
+              <GalleryPage />
+            </ProtectedRoute>
+          } />
+          <Route path="/donation" element={
+            <ProtectedRoute>
+              <DonationPage />
+            </ProtectedRoute>
+          } />
+          <Route path="/donation/manage" element={
+            <ProtectedRoute>
+              <FeaturePlaceholder />
+            </ProtectedRoute>
+          } />
+          <Route path="/events/manage" element={
+            <ProtectedRoute>
+              <FeaturePlaceholder />
+            </ProtectedRoute>
+          } />
+          
+          {/* Catch-all route for 404 */}
+          <Route path="*" element={<NotFound />} />
+        </Routes>
         <Toaster />
         <Sonner />
-        <BrowserRouter>
-          <Routes>
-            {/* Public routes */}
-            <Route path="/" element={<Login />} />
-            
-            {/* Protected routes */}
-            <Route path="/dashboard" element={
-              <ProtectedRoute>
-                <Dashboard />
-              </ProtectedRoute>
-            } />
-            
-            {/* Feature routes */}
-            <Route path="/attendance/scan" element={
-              <ProtectedRoute>
-                <AttendanceScan />
-              </ProtectedRoute>
-            } />
-            <Route path="/attendance/history" element={
-              <ProtectedRoute>
-                <AttendanceHistory />
-              </ProtectedRoute>
-            } />
-            <Route path="/attendance/manage" element={
-              <ProtectedRoute>
-                <AttendanceManage />
-              </ProtectedRoute>
-            } />
-            <Route path="/gallery" element={
-              <ProtectedRoute>
-                <GalleryPage />
-              </ProtectedRoute>
-            } />
-            <Route path="/gallery/upload" element={
-              <ProtectedRoute>
-                <GalleryPage />
-              </ProtectedRoute>
-            } />
-            <Route path="/donation" element={
-              <ProtectedRoute>
-                <DonationPage />
-              </ProtectedRoute>
-            } />
-            <Route path="/donation/manage" element={
-              <ProtectedRoute>
-                <FeaturePlaceholder />
-              </ProtectedRoute>
-            } />
-            <Route path="/events/manage" element={
-              <ProtectedRoute>
-                <FeaturePlaceholder />
-              </ProtectedRoute>
-            } />
-            
-            {/* Catch-all route for 404 */}
-            <Route path="*" element={<NotFound />} />
-          </Routes>
-        </BrowserRouter>
       </MockAuthProvider>
-    </TooltipProvider>
+    </BrowserRouter>
   </QueryClientProvider>
 );
 
