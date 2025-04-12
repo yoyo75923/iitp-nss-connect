@@ -3,7 +3,7 @@ import React from 'react';
 import Header from '@/components/Header';
 import EventsCarousel from '@/components/EventsCarousel';
 import FeatureCard from '@/components/FeatureCard';
-import { Camera, CalendarCheck, ImageIcon, MessageSquare, BookHeart, Droplets, Heart, ShoppingBag } from 'lucide-react';
+import { Camera, CalendarCheck, ImageIcon, MessageSquare, BookHeart, Heart, ShoppingBag } from 'lucide-react';
 
 const VolunteerDashboard = () => {
   const features = [
@@ -36,12 +36,6 @@ const VolunteerDashboard = () => {
       icon: BookHeart,
       path: '/donation',
       bgColor: 'bg-amber-600'
-    },
-    {
-      title: 'Blood Donation',
-      icon: Droplets,
-      path: '/blood-donation',
-      bgColor: 'bg-red-600'
     },
     {
       title: 'Fund Raising',

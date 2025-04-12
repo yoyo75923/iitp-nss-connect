@@ -3,7 +3,7 @@ import React, { createContext, useContext, useState, useEffect, ReactNode } from
 import { toast } from "sonner";
 
 // Define user types
-export type UserRole = 'volunteer' | 'mentor';
+export type UserRole = 'volunteer' | 'mentor' | 'secretary';
 
 export interface User {
   id: string;
@@ -43,6 +43,13 @@ const MOCK_USERS: User[] = [
     wing: 'Education',
     rollNumber: '2101CS34',
     mentor: 'Dr. Anjali Gupta'
+  },
+  {
+    id: '4',
+    name: 'Rahul Verma',
+    email: 'secretary@iitp.ac.in',
+    role: 'secretary',
+    wing: 'All Wings',
   }
 ];
 

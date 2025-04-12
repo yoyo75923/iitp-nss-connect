@@ -14,6 +14,8 @@ import NotFound from "./pages/NotFound";
 import AttendanceManage from "./pages/AttendanceManage";
 import AttendanceScan from "./pages/AttendanceScan";
 import AttendanceHistory from "./pages/AttendanceHistory";
+import DonationPage from "./pages/DonationPage";
+import GalleryPage from "./pages/GalleryPage";
 
 const queryClient = new QueryClient();
 
@@ -53,12 +55,12 @@ const App = () => (
             } />
             <Route path="/gallery" element={
               <ProtectedRoute>
-                <FeaturePlaceholder />
+                <GalleryPage />
               </ProtectedRoute>
             } />
             <Route path="/gallery/upload" element={
               <ProtectedRoute>
-                <FeaturePlaceholder />
+                <GalleryPage />
               </ProtectedRoute>
             } />
             <Route path="/chat" element={
@@ -68,20 +70,10 @@ const App = () => (
             } />
             <Route path="/donation" element={
               <ProtectedRoute>
-                <FeaturePlaceholder />
+                <DonationPage />
               </ProtectedRoute>
             } />
             <Route path="/donation/manage" element={
-              <ProtectedRoute>
-                <FeaturePlaceholder />
-              </ProtectedRoute>
-            } />
-            <Route path="/blood-donation" element={
-              <ProtectedRoute>
-                <FeaturePlaceholder />
-              </ProtectedRoute>
-            } />
-            <Route path="/blood-donation/manage" element={
               <ProtectedRoute>
                 <FeaturePlaceholder />
               </ProtectedRoute>

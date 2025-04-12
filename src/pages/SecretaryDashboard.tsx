@@ -3,7 +3,7 @@ import React from 'react';
 import Header from '@/components/Header';
 import EventsCarousel from '@/components/EventsCarousel';
 import FeatureCard from '@/components/FeatureCard';
-import { Users, CalendarClock, ImagePlus, MessageSquare, BookHeart, Droplets, Heart, ShoppingBag } from 'lucide-react';
+import { Users, CalendarClock, ImagePlus, MessageSquare, BookHeart, Heart, ShoppingBag } from 'lucide-react';
 import { Card, CardContent } from '@/components/ui/card';
 import { useAuth } from '@/contexts/MockAuthContext';
 
@@ -40,12 +40,6 @@ const SecretaryDashboard = () => {
       icon: BookHeart,
       path: '/donation/manage',
       bgColor: 'bg-amber-600'
-    },
-    {
-      title: 'Blood Requests',
-      icon: Droplets,
-      path: '/blood-donation/manage',
-      bgColor: 'bg-red-600'
     },
     {
       title: 'Manage Fundraising',
