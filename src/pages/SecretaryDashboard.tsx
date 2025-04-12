@@ -3,20 +3,15 @@ import React from 'react';
 import Header from '@/components/Header';
 import EventsCarousel from '@/components/EventsCarousel';
 import FeatureCard from '@/components/FeatureCard';
-import { Users, CalendarClock, ImagePlus, MessageSquare, BookHeart, Heart, ShoppingBag } from 'lucide-react';
+import { CalendarClock, ImagePlus, BookHeart } from 'lucide-react';
 import { Card, CardContent } from '@/components/ui/card';
 import { useAuth } from '@/contexts/MockAuthContext';
+import Footer from '@/components/Footer';
 
 const SecretaryDashboard = () => {
   const { user } = useAuth();
   
   const features = [
-    {
-      title: 'Manage Volunteers',
-      icon: Users,
-      path: '/volunteers',
-      bgColor: 'bg-green-600'
-    },
     {
       title: 'Manage Events',
       icon: CalendarClock,
@@ -30,28 +25,10 @@ const SecretaryDashboard = () => {
       bgColor: 'bg-purple-600'
     },
     {
-      title: 'Chat',
-      icon: MessageSquare,
-      path: '/chat',
-      bgColor: 'bg-indigo-600'
-    },
-    {
-      title: 'View Donations',
+      title: 'Manage Donations',
       icon: BookHeart,
       path: '/donation/manage',
       bgColor: 'bg-amber-600'
-    },
-    {
-      title: 'Manage Fundraising',
-      icon: Heart,
-      path: '/fundraising/manage',
-      bgColor: 'bg-pink-600'
-    },
-    {
-      title: 'Shop Management',
-      icon: ShoppingBag,
-      path: '/shop/manage',
-      bgColor: 'bg-emerald-600'
     }
   ];
 
@@ -94,6 +71,8 @@ const SecretaryDashboard = () => {
           </div>
         </div>
       </main>
+      
+      <Footer />
     </div>
   );
 };

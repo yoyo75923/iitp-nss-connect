@@ -3,7 +3,8 @@ import React from 'react';
 import Header from '@/components/Header';
 import EventsCarousel from '@/components/EventsCarousel';
 import FeatureCard from '@/components/FeatureCard';
-import { Camera, CalendarCheck, ImageIcon, MessageSquare, BookHeart, Heart, ShoppingBag } from 'lucide-react';
+import { Camera, CalendarCheck, ImageIcon, BookHeart } from 'lucide-react';
+import Footer from '@/components/Footer';
 
 const VolunteerDashboard = () => {
   const features = [
@@ -26,28 +27,10 @@ const VolunteerDashboard = () => {
       bgColor: 'bg-purple-600'
     },
     {
-      title: 'Chat',
-      icon: MessageSquare,
-      path: '/chat',
-      bgColor: 'bg-indigo-600'
-    },
-    {
       title: 'Donation',
       icon: BookHeart,
       path: '/donation',
       bgColor: 'bg-amber-600'
-    },
-    {
-      title: 'Fund Raising',
-      icon: Heart,
-      path: '/fundraising',
-      bgColor: 'bg-pink-600'
-    },
-    {
-      title: 'Souvenir Shop',
-      icon: ShoppingBag,
-      path: '/shop',
-      bgColor: 'bg-emerald-600'
     }
   ];
 
@@ -74,6 +57,8 @@ const VolunteerDashboard = () => {
           </div>
         </div>
       </main>
+      
+      <Footer />
     </div>
   );
 };

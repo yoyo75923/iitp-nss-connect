@@ -63,42 +63,12 @@ const App = () => (
                 <GalleryPage />
               </ProtectedRoute>
             } />
-            <Route path="/chat" element={
-              <ProtectedRoute>
-                <FeaturePlaceholder />
-              </ProtectedRoute>
-            } />
             <Route path="/donation" element={
               <ProtectedRoute>
                 <DonationPage />
               </ProtectedRoute>
             } />
             <Route path="/donation/manage" element={
-              <ProtectedRoute>
-                <FeaturePlaceholder />
-              </ProtectedRoute>
-            } />
-            <Route path="/fundraising" element={
-              <ProtectedRoute>
-                <FeaturePlaceholder />
-              </ProtectedRoute>
-            } />
-            <Route path="/fundraising/manage" element={
-              <ProtectedRoute>
-                <FeaturePlaceholder />
-              </ProtectedRoute>
-            } />
-            <Route path="/shop" element={
-              <ProtectedRoute>
-                <FeaturePlaceholder />
-              </ProtectedRoute>
-            } />
-            <Route path="/shop/manage" element={
-              <ProtectedRoute>
-                <FeaturePlaceholder />
-              </ProtectedRoute>
-            } />
-            <Route path="/volunteers" element={
               <ProtectedRoute>
                 <FeaturePlaceholder />
               </ProtectedRoute>
