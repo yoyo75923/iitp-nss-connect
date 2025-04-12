@@ -92,7 +92,7 @@ const Login = () => {
           </form>
           
           <div className="mt-6 p-4 bg-blue-50 rounded-lg">
-            <h3 className="text-sm font-semibold text-blue-900 mb-2">Authorized Accounts:</h3>
+            <h3 className="text-sm font-semibold text-blue-900 mb-2">Example inputs:</h3>
             <ul className="text-xs space-y-1 text-blue-800">
               <li>Volunteer: aaravmehta@iitp.ac.in (any password)</li>
               <li>Mentor: kavyabansal@iitp.ac.in (any password)</li>
