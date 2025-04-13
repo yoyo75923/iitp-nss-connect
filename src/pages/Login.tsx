@@ -49,6 +49,9 @@ const Login = () => {
         toast.error("Login failed. Please check your credentials.");
       }
       // If success, navigation handled by the effect above
+    } catch (error) {
+      console.error("Login error:", error);
+      toast.error("Login failed. Please try again.");
     } finally {
       setIsLoading(false);
     }
@@ -108,7 +111,8 @@ const Login = () => {
             <h3 className="text-sm font-semibold text-blue-900 mb-2">Login Information:</h3>
             <ul className="text-xs space-y-1 text-blue-800">
               <li>Username: Your @iitp.ac.in email</li>
-              <li>Password: Your roll number (e.g., 2101CS01)</li>
+              <li>Password: Your roll number (e.g., 2001CS11)</li>
+              <li>Example: Email: pranaviyer@iitp.ac.in | Password: 2001CS11</li>
             </ul>
           </div>
         </CardContent>

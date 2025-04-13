@@ -105,6 +105,7 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
       });
 
       if (error) {
+        console.error("Login error:", error.message);
         toast.error(error.message);
         return false;
       }

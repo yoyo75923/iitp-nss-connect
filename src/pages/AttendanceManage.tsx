@@ -27,7 +27,7 @@ const AttendanceManage = () => {
           .from('mentor_assignments')
           .select(`
             volunteer_id,
-            volunteer:volunteer_id(id, name, roll_number)
+            volunteer:users!volunteer_id(id, name, roll_number)
           `)
           .eq('mentor_id', user.id);
 
@@ -38,23 +38,25 @@ const AttendanceManage = () => {
         if (data) {
           // Get attendance records for each volunteer
           const volunteerPromises = data.map(async (item) => {
-            const volunteer = item.volunteer;
+            const volunteerData = {
+              id: item.volunteer_id,
+              name: item.volunteer.name,
+              rollNumber: item.volunteer.roll_number
+            };
             
             const { data: attendanceData, error: attendanceError } = await supabase
               .from('attendance')
               .select(`
-                event:event_id(
+                event:events!event_id(
                   hours
                 )
               `)
-              .eq('volunteer_id', volunteer.id);
+              .eq('volunteer_id', volunteerData.id);
             
             if (attendanceError) {
               console.error('Error fetching attendance:', attendanceError);
               return {
-                id: volunteer.id,
-                name: volunteer.name,
-                rollNumber: volunteer.roll_number,
+                ...volunteerData,
                 totalHours: 0
               };
             }
@@ -65,9 +67,7 @@ const AttendanceManage = () => {
             );
             
             return {
-              id: volunteer.id,
-              name: volunteer.name,
-              rollNumber: volunteer.roll_number,
+              ...volunteerData,
               totalHours: totalHours
             };
           });
