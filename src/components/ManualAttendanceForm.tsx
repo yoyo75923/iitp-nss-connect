@@ -45,7 +45,7 @@ const ManualAttendanceForm = () => {
           .from('mentor_assignments')
           .select(`
             volunteer_id,
-            users:volunteer_id(id, name, roll_number)
+            volunteer:volunteer_id(id, name, roll_number)
           `)
           .eq('mentor_id', user.id);
 
@@ -55,9 +55,9 @@ const ManualAttendanceForm = () => {
 
         if (data) {
           const formattedVolunteers = data.map(item => ({
-            id: item.users.id,
-            name: item.users.name,
-            roll_number: item.users.roll_number,
+            id: item.volunteer.id,
+            name: item.volunteer.name,
+            roll_number: item.volunteer.roll_number,
             isPresent: false
           }));
           

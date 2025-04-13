@@ -17,7 +17,7 @@ interface AttendanceRecord {
     start_time: string;
   };
   status: string;
-  marked_at: string;
+  created_at: string;
 }
 
 const AttendanceHistory = () => {
@@ -36,7 +36,7 @@ const AttendanceHistory = () => {
           .select(`
             id,
             status,
-            marked_at,
+            created_at,
             event:event_id (
               id,
               title,
@@ -46,7 +46,7 @@ const AttendanceHistory = () => {
             )
           `)
           .eq('volunteer_id', user.id)
-          .order('marked_at', { ascending: false });
+          .order('created_at', { ascending: false });
 
         if (error) {
           throw error;

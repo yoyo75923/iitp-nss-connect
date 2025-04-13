@@ -38,6 +38,8 @@ const AttendanceManage = () => {
         if (data) {
           // Get attendance records for each volunteer
           const volunteerPromises = data.map(async (item) => {
+            const volunteer = item.users;
+            
             const { data: attendanceData, error: attendanceError } = await supabase
               .from('attendance')
               .select(`
@@ -45,14 +47,14 @@ const AttendanceManage = () => {
                   hours
                 )
               `)
-              .eq('volunteer_id', item.volunteer_id);
+              .eq('volunteer_id', volunteer.id);
             
             if (attendanceError) {
               console.error('Error fetching attendance:', attendanceError);
               return {
-                id: item.users.id,
-                name: item.users.name,
-                rollNumber: item.users.roll_number,
+                id: volunteer.id,
+                name: volunteer.name,
+                rollNumber: volunteer.roll_number,
                 totalHours: 0
               };
             }
@@ -63,9 +65,9 @@ const AttendanceManage = () => {
             );
             
             return {
-              id: item.users.id,
-              name: item.users.name,
-              rollNumber: item.users.roll_number,
+              id: volunteer.id,
+              name: volunteer.name,
+              rollNumber: volunteer.roll_number,
               totalHours: totalHours
             };
           });

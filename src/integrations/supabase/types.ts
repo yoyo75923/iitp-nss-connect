@@ -9,7 +9,156 @@ export type Json =
 export type Database = {
   public: {
     Tables: {
-      [_ in never]: never
+      attendance: {
+        Row: {
+          created_at: string | null
+          event_id: string
+          id: string
+          marked_by: string | null
+          status: string
+          volunteer_id: string
+        }
+        Insert: {
+          created_at?: string | null
+          event_id: string
+          id?: string
+          marked_by?: string | null
+          status: string
+          volunteer_id: string
+        }
+        Update: {
+          created_at?: string | null
+          event_id?: string
+          id?: string
+          marked_by?: string | null
+          status?: string
+          volunteer_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "attendance_event_id_fkey"
+            columns: ["event_id"]
+            isOneToOne: false
+            referencedRelation: "events"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "attendance_marked_by_fkey"
+            columns: ["marked_by"]
+            isOneToOne: false
+            referencedRelation: "users"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "attendance_volunteer_id_fkey"
+            columns: ["volunteer_id"]
+            isOneToOne: false
+            referencedRelation: "users"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      events: {
+        Row: {
+          created_by: string
+          description: string | null
+          end_time: string
+          hours: number
+          id: string
+          location: string | null
+          start_time: string
+          title: string
+        }
+        Insert: {
+          created_by: string
+          description?: string | null
+          end_time: string
+          hours: number
+          id?: string
+          location?: string | null
+          start_time: string
+          title: string
+        }
+        Update: {
+          created_by?: string
+          description?: string | null
+          end_time?: string
+          hours?: number
+          id?: string
+          location?: string | null
+          start_time?: string
+          title?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "events_created_by_fkey"
+            columns: ["created_by"]
+            isOneToOne: false
+            referencedRelation: "users"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      mentor_assignments: {
+        Row: {
+          id: string
+          mentor_id: string
+          volunteer_id: string
+        }
+        Insert: {
+          id?: string
+          mentor_id: string
+          volunteer_id: string
+        }
+        Update: {
+          id?: string
+          mentor_id?: string
+          volunteer_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "mentor_assignments_mentor_id_fkey"
+            columns: ["mentor_id"]
+            isOneToOne: false
+            referencedRelation: "users"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "mentor_assignments_volunteer_id_fkey"
+            columns: ["volunteer_id"]
+            isOneToOne: false
+            referencedRelation: "users"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      users: {
+        Row: {
+          email: string
+          id: string
+          name: string
+          role: string
+          roll_number: string | null
+          wing: string | null
+        }
+        Insert: {
+          email: string
+          id: string
+          name: string
+          role: string
+          roll_number?: string | null
+          wing?: string | null
+        }
+        Update: {
+          email?: string
+          id?: string
+          name?: string
+          role?: string
+          roll_number?: string | null
+          wing?: string | null
+        }
+        Relationships: []
+      }
     }
     Views: {
       [_ in never]: never

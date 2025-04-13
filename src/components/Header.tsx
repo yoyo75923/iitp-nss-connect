@@ -1,6 +1,6 @@
 
 import React from 'react';
-import { useAuth } from '@/contexts/MockAuthContext';
+import { useAuth } from '@/contexts/AuthContext';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
 import { Button } from '@/components/ui/button';
@@ -59,15 +59,11 @@ const Header = () => {
                 <>
                   <div className="flex justify-between">
                     <span className="text-sm text-muted-foreground">Roll Number:</span>
-                    <span className="text-sm font-medium">{user.rollNumber}</span>
+                    <span className="text-sm font-medium">{user.roll_number}</span>
                   </div>
                   <div className="flex justify-between">
                     <span className="text-sm text-muted-foreground">NSS Wing:</span>
-                    <span className="text-sm font-medium">{user.wing}</span>
-                  </div>
-                  <div className="flex justify-between">
-                    <span className="text-sm text-muted-foreground">Mentor:</span>
-                    <span className="text-sm font-medium">{user.mentor}</span>
+                    <span className="text-sm font-medium">{user.wing || 'Not assigned'}</span>
                   </div>
                 </>
               )}
@@ -76,11 +72,7 @@ const Header = () => {
                 <>
                   <div className="flex justify-between">
                     <span className="text-sm text-muted-foreground">NSS Wing:</span>
-                    <span className="text-sm font-medium">{user.wing}</span>
-                  </div>
-                  <div className="flex justify-between">
-                    <span className="text-sm text-muted-foreground">Volunteers:</span>
-                    <span className="text-sm font-medium">{user.volunteers?.length || 0}</span>
+                    <span className="text-sm font-medium">{user.wing || 'Not assigned'}</span>
                   </div>
                 </>
               )}
