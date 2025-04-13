@@ -2,60 +2,86 @@
 import React, { useState, useEffect } from 'react';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
-import { useAuth } from '@/contexts/MockAuthContext';
+import { useAuth } from '@/contexts/AuthContext';
+import { supabase } from '@/integrations/supabase/client';
 import Header from '@/components/Header';
-import QRCodeGenerator from '@/components/QRCodeGenerator';
 import VolunteersList from '@/components/VolunteersList';
 import { Volunteer } from '@/components/VolunteersList';
-import { AttendanceRecord, User } from '@/types/user';
 import Footer from '@/components/Footer';
-
-// Sample events data - in a real app, this would come from an API or database
-const SAMPLE_EVENTS = [
-  { id: 'event-001', name: 'NSS Weekly Meeting' },
-  { id: 'event-002', name: 'Blood Donation Camp' },
-  { id: 'event-003', name: 'Tree Plantation Drive' },
-  { id: 'event-004', name: 'Community Cleanup' },
-  { id: 'event-005', name: 'Awareness Workshop' },
-];
+import ManualAttendanceForm from '@/components/ManualAttendanceForm';
+import { toast } from 'sonner';
 
 const AttendanceManage = () => {
   const { user } = useAuth();
   const [volunteers, setVolunteers] = useState<Volunteer[]>([]);
-  const [selectedEvent, setSelectedEvent] = useState({
-    id: 'event-001',
-    name: 'NSS Weekly Meeting',
-  });
+  const [isLoading, setIsLoading] = useState(true);
   
   useEffect(() => {
     // Get volunteers for the current mentor
-    if (user && user.role === 'mentor' && user.volunteerObjects) {
-      // Get attendance records
-      const savedRecordsStr = sessionStorage.getItem('attendanceRecords');
-      const savedRecords: AttendanceRecord[] = savedRecordsStr ? JSON.parse(savedRecordsStr) : [];
+    const fetchVolunteers = async () => {
+      if (!user) return;
       
-      // Map volunteer objects to volunteer list
-      const volunteerList = user.volunteerObjects.map(volunteer => {
-        // Get records for this volunteer
-        const volunteerRecords = savedRecords.filter(
-          record => record.volunteerId === volunteer.id
-        );
-        
-        // Calculate total hours
-        const totalHours = volunteerRecords.reduce(
-          (sum, record) => sum + record.hours, 0
-        );
-        
-        return {
-          id: volunteer.id,
-          name: volunteer.name,
-          rollNumber: volunteer.rollNumber || 'N/A',
-          totalHours: totalHours
-        };
-      });
-      
-      setVolunteers(volunteerList);
-    }
+      try {
+        // Get volunteers assigned to the current mentor
+        const { data, error } = await supabase
+          .from('mentor_assignments')
+          .select(`
+            volunteer_id,
+            users:volunteer_id(id, name, roll_number)
+          `)
+          .eq('mentor_id', user.id);
+
+        if (error) {
+          throw error;
+        }
+
+        if (data) {
+          // Get attendance records for each volunteer
+          const volunteerPromises = data.map(async (item) => {
+            const { data: attendanceData, error: attendanceError } = await supabase
+              .from('attendance')
+              .select(`
+                event:event_id (
+                  hours
+                )
+              `)
+              .eq('volunteer_id', item.volunteer_id);
+            
+            if (attendanceError) {
+              console.error('Error fetching attendance:', attendanceError);
+              return {
+                id: item.users.id,
+                name: item.users.name,
+                rollNumber: item.users.roll_number,
+                totalHours: 0
+              };
+            }
+            
+            // Calculate total hours
+            const totalHours = (attendanceData || []).reduce(
+              (sum, record) => sum + (record.event?.hours || 0), 0
+            );
+            
+            return {
+              id: item.users.id,
+              name: item.users.name,
+              rollNumber: item.users.roll_number,
+              totalHours: totalHours
+            };
+          });
+          
+          const volunteerList = await Promise.all(volunteerPromises);
+          setVolunteers(volunteerList);
+        }
+      } catch (error) {
+        console.error('Error fetching volunteers:', error);
+        toast.error('Failed to load volunteers');
+      } finally {
+        setIsLoading(false);
+      }
+    };
+    
+    fetchVolunteers();
   }, [user]);
 
   return (
@@ -65,31 +91,16 @@ const AttendanceManage = () => {
       <main className="flex-1 p-4 md:p-6">
         <div className="max-w-6xl mx-auto">
           <h1 className="text-2xl font-bold mb-2">Attendance Management</h1>
-          <p className="text-gray-500 mb-6">Generate QR codes and view volunteers' attendance</p>
+          <p className="text-gray-500 mb-6">Mark attendance and view volunteers' hours</p>
           
-          <Tabs defaultValue="qr-code" className="w-full">
+          <Tabs defaultValue="mark-attendance" className="w-full">
             <TabsList className="grid w-full grid-cols-2 mb-6">
-              <TabsTrigger value="qr-code">QR Code Generator</TabsTrigger>
+              <TabsTrigger value="mark-attendance">Mark Attendance</TabsTrigger>
               <TabsTrigger value="volunteers">Volunteers</TabsTrigger>
             </TabsList>
             
-            <TabsContent value="qr-code" className="space-y-6">
-              <Card>
-                <CardHeader>
-                  <CardTitle>Generate Attendance QR Code</CardTitle>
-                  <CardDescription>
-                    Start attendance for an event by creating a QR code for volunteers to scan. 
-                    Specify the event and hours to award.
-                  </CardDescription>
-                </CardHeader>
-                <CardContent>
-                  <QRCodeGenerator 
-                    eventId={selectedEvent.id} 
-                    eventName={selectedEvent.name}
-                    events={SAMPLE_EVENTS}
-                  />
-                </CardContent>
-              </Card>
+            <TabsContent value="mark-attendance" className="space-y-6">
+              <ManualAttendanceForm />
             </TabsContent>
             
             <TabsContent value="volunteers" className="space-y-6">
@@ -101,7 +112,11 @@ const AttendanceManage = () => {
                   </CardDescription>
                 </CardHeader>
                 <CardContent>
-                  <VolunteersList volunteers={volunteers} />
+                  {isLoading ? (
+                    <p className="text-center py-4">Loading volunteers...</p>
+                  ) : (
+                    <VolunteersList volunteers={volunteers} />
+                  )}
                 </CardContent>
               </Card>
             </TabsContent>

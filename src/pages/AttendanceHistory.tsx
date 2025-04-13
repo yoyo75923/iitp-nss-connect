@@ -1,32 +1,73 @@
 
 import React, { useState, useEffect } from 'react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
-import { useAuth } from '@/contexts/MockAuthContext';
+import { useAuth } from '@/contexts/AuthContext';
+import { supabase } from '@/integrations/supabase/client';
 import Header from '@/components/Header';
-import { AttendanceRecord } from '@/types/user';
 import Footer from '@/components/Footer';
+import { toast } from 'sonner';
+
+interface AttendanceRecord {
+  id: string;
+  event: {
+    id: string;
+    title: string;
+    location: string;
+    hours: number;
+    start_time: string;
+  };
+  status: string;
+  marked_at: string;
+}
 
 const AttendanceHistory = () => {
   const { user } = useAuth();
   const [attendanceRecords, setAttendanceRecords] = useState<AttendanceRecord[]>([]);
+  const [isLoading, setIsLoading] = useState(true);
 
-  // Load saved attendance records from session storage
+  // Fetch attendance records
   useEffect(() => {
-    if (user) {
-      const savedRecords = sessionStorage.getItem('attendanceRecords');
-      if (savedRecords) {
-        const parsedRecords: AttendanceRecord[] = JSON.parse(savedRecords);
-        // Filter records for the current user
-        const userRecords = parsedRecords.filter(record => record.volunteerId === user.id);
-        // Sort by date (newest first)
-        userRecords.sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime());
-        setAttendanceRecords(userRecords);
+    const fetchAttendanceRecords = async () => {
+      if (!user) return;
+
+      try {
+        const { data, error } = await supabase
+          .from('attendance')
+          .select(`
+            id,
+            status,
+            marked_at,
+            event:event_id (
+              id,
+              title,
+              location,
+              hours,
+              start_time
+            )
+          `)
+          .eq('volunteer_id', user.id)
+          .order('marked_at', { ascending: false });
+
+        if (error) {
+          throw error;
+        }
+
+        setAttendanceRecords(data || []);
+      } catch (error) {
+        console.error('Error fetching attendance records:', error);
+        toast.error('Failed to load attendance history');
+      } finally {
+        setIsLoading(false);
       }
-    }
+    };
+
+    fetchAttendanceRecords();
   }, [user]);
   
   // Calculate total hours
-  const totalHours = attendanceRecords.reduce((sum, record) => sum + record.hours, 0);
+  const totalHours = attendanceRecords.reduce((sum, record) => 
+    sum + (record.event?.hours || 0), 0
+  );
 
   return (
     <div className="flex flex-col min-h-screen bg-gray-50">
@@ -64,19 +105,22 @@ const AttendanceHistory = () => {
                 </CardDescription>
               </CardHeader>
               <CardContent>
-                {attendanceRecords.length > 0 ? (
+                {isLoading ? (
+                  <p className="text-center py-4">Loading attendance records...</p>
+                ) : attendanceRecords.length > 0 ? (
                   <div className="space-y-4">
                     {attendanceRecords.map((record) => (
                       <div key={record.id} className="p-4 border rounded-lg">
                         <div className="flex justify-between items-start mb-2">
-                          <h3 className="font-semibold">{record.eventName}</h3>
+                          <h3 className="font-semibold">{record.event?.title}</h3>
                           <span className="bg-green-100 text-green-800 text-xs px-2 py-1 rounded">
-                            +{record.hours} hours
+                            +{record.event?.hours || 0} hours
                           </span>
                         </div>
                         <div className="text-sm text-gray-600">
-                          <p>Date: {new Date(record.date).toLocaleDateString()}</p>
-                          <p>Venue: {record.venue}</p>
+                          <p>Date: {new Date(record.event?.start_time).toLocaleDateString()}</p>
+                          <p>Venue: {record.event?.location || 'N/A'}</p>
+                          <p>Status: {record.status}</p>
                         </div>
                       </div>
                     ))}

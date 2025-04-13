@@ -1,7 +1,7 @@
 
 import React, { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
-import { useAuth } from "@/contexts/MockAuthContext";
+import { useAuth } from "@/contexts/AuthContext";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
@@ -11,7 +11,7 @@ const Login = () => {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [isLoading, setIsLoading] = useState(false);
-  const { login, isAuthenticated } = useAuth();
+  const { login, isAuthenticated, isLoading: authLoading } = useAuth();
   const navigate = useNavigate();
 
   // Redirect if already authenticated
@@ -35,6 +35,11 @@ const Login = () => {
       return;
     }
     
+    if (!password) {
+      toast.error("Password is required");
+      return;
+    }
+    
     setIsLoading(true);
     
     try {
@@ -48,6 +53,14 @@ const Login = () => {
       setIsLoading(false);
     }
   };
+
+  if (authLoading) {
+    return (
+      <div className="min-h-screen flex items-center justify-center">
+        <p>Loading...</p>
+      </div>
+    );
+  }
 
   return (
     <div className="min-h-screen flex items-center justify-center bg-gray-50 px-4 sm:px-6 lg:px-8">
@@ -76,7 +89,7 @@ const Login = () => {
               <Input
                 id="password"
                 type="password"
-                placeholder="Enter your password"
+                placeholder="Enter your password (your roll number)"
                 value={password}
                 onChange={(e) => setPassword(e.target.value)}
                 className="w-full px-3 py-2"
@@ -92,11 +105,10 @@ const Login = () => {
           </form>
           
           <div className="mt-6 p-4 bg-blue-50 rounded-lg">
-            <h3 className="text-sm font-semibold text-blue-900 mb-2">Example inputs:</h3>
+            <h3 className="text-sm font-semibold text-blue-900 mb-2">Login Information:</h3>
             <ul className="text-xs space-y-1 text-blue-800">
-              <li>Volunteer: aaravmehta@iitp.ac.in (any password)</li>
-              <li>Mentor: kavyabansal@iitp.ac.in (any password)</li>
-              <li>Secretary: riyakapoor@iitp.ac.in (any password)</li>
+              <li>Username: Your @iitp.ac.in email</li>
+              <li>Password: Your roll number (e.g., 2101CS01)</li>
             </ul>
           </div>
         </CardContent>
