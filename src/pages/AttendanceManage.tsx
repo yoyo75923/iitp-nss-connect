@@ -27,7 +27,7 @@ const AttendanceManage = () => {
           .from('mentor_assignments')
           .select(`
             volunteer_id,
-            users:volunteer_id(id, name, roll_number)
+            volunteer:volunteer_id(id, name, roll_number)
           `)
           .eq('mentor_id', user.id);
 
@@ -38,12 +38,12 @@ const AttendanceManage = () => {
         if (data) {
           // Get attendance records for each volunteer
           const volunteerPromises = data.map(async (item) => {
-            const volunteer = item.users;
+            const volunteer = item.volunteer;
             
             const { data: attendanceData, error: attendanceError } = await supabase
               .from('attendance')
               .select(`
-                event:event_id (
+                event:event_id(
                   hours
                 )
               `)
