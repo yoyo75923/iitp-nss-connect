@@ -1,73 +1,102 @@
 
-import React, { useState, useEffect } from 'react';
-import { supabase } from '@/integrations/supabase/client';
-import { useAuth } from '@/contexts/AuthContext';
-import { Card, CardContent, CardHeader, CardTitle, CardDescription, CardFooter } from '@/components/ui/card';
-import { Input } from '@/components/ui/input';
-import { Button } from '@/components/ui/button';
-import { Label } from '@/components/ui/label';
-import { Checkbox } from '@/components/ui/checkbox';
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import React, { useState, useEffect } from "react";
+import { z } from "zod";
+import { useForm } from "react-hook-form";
+import { zodResolver } from "@hookform/resolvers/zod";
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
+import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form";
+import { Input } from "@/components/ui/input";
+import { Textarea } from "@/components/ui/textarea";
+import { Button } from "@/components/ui/button";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { toast } from "sonner";
+import { supabase } from "@/integrations/supabase/client";
+import { useAuth } from "@/contexts/AuthContext";
 
-interface Volunteer {
+// Define the form schema
+const formSchema = z.object({
+  volunteerId: z.string({
+    required_error: "Please select a volunteer",
+  }),
+  eventId: z.string({
+    required_error: "Please select an event",
+  }),
+  hoursAttended: z.string().transform(val => parseInt(val)),
+  description: z.string().optional(),
+});
+
+type FormValues = z.infer<typeof formSchema>;
+
+type Volunteer = {
   id: string;
   name: string;
-  roll_number: string;
-  isPresent?: boolean;
-}
+  roll_number?: string;
+};
 
-interface Event {
-  id: string;
+type Event = {
+  event_id: string;
   title: string;
   start_time: string;
   end_time: string;
-  hours: number;
-}
+  location?: string;
+};
 
 const ManualAttendanceForm = () => {
-  const { user } = useAuth();
   const [volunteers, setVolunteers] = useState<Volunteer[]>([]);
   const [events, setEvents] = useState<Event[]>([]);
-  const [selectedEvent, setSelectedEvent] = useState<string | null>(null);
   const [isLoading, setIsLoading] = useState(false);
-  const [isSaving, setIsSaving] = useState(false);
+  const { user } = useAuth();
 
-  // Fetch assigned volunteers
+  // Set up form with zod validation
+  const form = useForm<FormValues>({
+    resolver: zodResolver(formSchema),
+    defaultValues: {
+      volunteerId: "",
+      eventId: "",
+      hoursAttended: "1",
+      description: "",
+    },
+  });
+
+  // Fetch volunteers based on the user's role
   useEffect(() => {
     const fetchVolunteers = async () => {
       if (!user) return;
-      
-      setIsLoading(true);
+
       try {
-        // Get volunteers assigned to the current mentor
-        const { data, error } = await supabase
-          .from('mentor_assignments')
-          .select(`
-            volunteer_id,
-            volunteer:users!volunteer_id(id, name, roll_number)
-          `)
-          .eq('mentor_id', user.id);
+        let volunteerData: Volunteer[] = [];
 
-        if (error) {
-          throw error;
-        }
+        if (user.role === 'secretary') {
+          // If secretary, get all volunteers
+          const { data, error } = await supabase
+            .from('users')
+            .select('id, name, roll_number')
+            .eq('role', 'volunteer');
 
-        if (data) {
-          const formattedVolunteers = data.map(item => ({
+          if (error) throw error;
+          volunteerData = data;
+        } else if (user.role === 'mentor') {
+          // If mentor, get assigned volunteers
+          const { data, error } = await supabase
+            .from('mentor_assignments')
+            .select(`
+              volunteer_id,
+              volunteer:volunteer_id(id, name, roll_number)
+            `)
+            .eq('mentor_id', user.id);
+
+          if (error) throw error;
+          volunteerData = data.map((item) => ({
             id: item.volunteer_id,
             name: item.volunteer.name,
-            roll_number: item.volunteer.roll_number,
-            isPresent: false
+            roll_number: item.volunteer.roll_number
           }));
-          
-          setVolunteers(formattedVolunteers);
         }
+
+        setVolunteers(volunteerData);
       } catch (error) {
         console.error('Error fetching volunteers:', error);
         toast.error('Failed to load volunteers');
-      } finally {
-        setIsLoading(false);
       }
     };
 
@@ -78,21 +107,13 @@ const ManualAttendanceForm = () => {
   useEffect(() => {
     const fetchEvents = async () => {
       try {
-        const now = new Date().toISOString();
-        
         const { data, error } = await supabase
           .from('events')
-          .select('*')
-          .gte('end_time', now)
-          .order('start_time', { ascending: true });
+          .select('event_id, title, start_time, end_time, location')
+          .order('start_time', { ascending: false });
 
-        if (error) {
-          throw error;
-        }
-
-        if (data) {
-          setEvents(data);
-        }
+        if (error) throw error;
+        setEvents(data || []);
       } catch (error) {
         console.error('Error fetching events:', error);
         toast.error('Failed to load events');
@@ -102,59 +123,49 @@ const ManualAttendanceForm = () => {
     fetchEvents();
   }, []);
 
-  const handleCheckboxChange = (volunteerId: string, isChecked: boolean) => {
-    setVolunteers(volunteers.map(vol => 
-      vol.id === volunteerId ? { ...vol, isPresent: isChecked } : vol
-    ));
-  };
-
-  const handleSubmit = async () => {
-    if (!selectedEvent) {
-      toast.error('Please select an event');
-      return;
-    }
-
-    const presentVolunteers = volunteers.filter(vol => vol.isPresent);
+  const onSubmit = async (values: FormValues) => {
+    if (!user) return;
     
-    if (presentVolunteers.length === 0) {
-      toast.error('No volunteers marked as present');
-      return;
-    }
-
-    setIsSaving(true);
+    setIsLoading(true);
     
     try {
-      // Prepare attendance records
-      const attendanceRecords = presentVolunteers.map(vol => ({
-        event_id: selectedEvent,
-        volunteer_id: vol.id,
-        marked_by: user?.id,
-        status: 'present'
-      }));
-
-      // Insert attendance records
-      const { error } = await supabase
+      // Insert into attendance table
+      const { data, error } = await supabase
         .from('attendance')
-        .upsert(attendanceRecords, { 
-          onConflict: 'event_id,volunteer_id',
-          ignoreDuplicates: false
-        });
+        .insert({
+          user_id: values.volunteerId,
+          event_id: values.eventId,
+          hours_attended: values.hoursAttended,
+          description: values.description || null
+        })
+        .select();
 
-      if (error) {
-        throw error;
-      }
+      if (error) throw error;
 
+      // Update total_hours in mentor_assignments
+      const { error: updateError } = await supabase
+        .from('mentor_assignments')
+        .update({ 
+          total_hours: supabase.rpc('increment_hours', { 
+            row_volunteer_id: values.volunteerId, 
+            hours_to_add: values.hoursAttended 
+          })
+        })
+        .eq('volunteer_id', values.volunteerId);
+
+      if (updateError) throw updateError;
+      
       toast.success('Attendance marked successfully');
-      
-      // Reset form
-      setVolunteers(volunteers.map(vol => ({ ...vol, isPresent: false })));
-      setSelectedEvent(null);
-      
-    } catch (error) {
+      form.reset();
+    } catch (error: any) {
       console.error('Error marking attendance:', error);
-      toast.error('Failed to mark attendance');
+      if (error.code === '23505') {
+        toast.error('Attendance for this volunteer and event already exists');
+      } else {
+        toast.error('Failed to mark attendance');
+      }
     } finally {
-      setIsSaving(false);
+      setIsLoading(false);
     }
   };
 
@@ -163,70 +174,111 @@ const ManualAttendanceForm = () => {
       <CardHeader>
         <CardTitle>Mark Attendance</CardTitle>
         <CardDescription>
-          Select an event and mark attendance for your assigned volunteers
+          Record attendance for volunteers at NSS events
         </CardDescription>
       </CardHeader>
       <CardContent>
-        <div className="space-y-6">
-          <div className="space-y-2">
-            <Label htmlFor="event">Select Event</Label>
-            <Select
-              value={selectedEvent || undefined}
-              onValueChange={setSelectedEvent}
-            >
-              <SelectTrigger id="event">
-                <SelectValue placeholder="Select an event" />
-              </SelectTrigger>
-              <SelectContent>
-                {events.map(event => (
-                  <SelectItem key={event.id} value={event.id}>
-                    {event.title} ({new Date(event.start_time).toLocaleDateString()})
-                  </SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
-          </div>
+        <Form {...form}>
+          <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6">
+            <FormField
+              control={form.control}
+              name="volunteerId"
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel>Volunteer</FormLabel>
+                  <Select
+                    onValueChange={field.onChange}
+                    defaultValue={field.value}
+                  >
+                    <FormControl>
+                      <SelectTrigger>
+                        <SelectValue placeholder="Select a volunteer" />
+                      </SelectTrigger>
+                    </FormControl>
+                    <SelectContent>
+                      {volunteers.map((volunteer) => (
+                        <SelectItem key={volunteer.id} value={volunteer.id}>
+                          {volunteer.name} {volunteer.roll_number ? `(${volunteer.roll_number})` : ''}
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
 
-          <div className="space-y-2">
-            <h3 className="text-sm font-medium">Volunteers</h3>
-            
-            {isLoading ? (
-              <p className="text-sm text-gray-500">Loading volunteers...</p>
-            ) : volunteers.length > 0 ? (
-              <div className="border rounded-md divide-y">
-                {volunteers.map(volunteer => (
-                  <div key={volunteer.id} className="flex items-center p-3">
-                    <Checkbox
-                      id={`volunteer-${volunteer.id}`}
-                      checked={volunteer.isPresent || false}
-                      onCheckedChange={(checked) => 
-                        handleCheckboxChange(volunteer.id, checked as boolean)
-                      }
+            <FormField
+              control={form.control}
+              name="eventId"
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel>Event</FormLabel>
+                  <Select
+                    onValueChange={field.onChange}
+                    defaultValue={field.value}
+                  >
+                    <FormControl>
+                      <SelectTrigger>
+                        <SelectValue placeholder="Select an event" />
+                      </SelectTrigger>
+                    </FormControl>
+                    <SelectContent>
+                      {events.map((event) => (
+                        <SelectItem key={event.event_id} value={event.event_id}>
+                          {event.title} ({new Date(event.start_time).toLocaleDateString()})
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
+
+            <FormField
+              control={form.control}
+              name="hoursAttended"
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel>Hours Attended</FormLabel>
+                  <FormControl>
+                    <Input
+                      type="number"
+                      min="1"
+                      max="24"
+                      placeholder="Enter hours"
+                      {...field}
                     />
-                    <label
-                      htmlFor={`volunteer-${volunteer.id}`}
-                      className="ml-3 flex-1 text-sm cursor-pointer"
-                    >
-                      <span className="font-medium">{volunteer.name}</span>
-                      <span className="text-gray-500 ml-2">({volunteer.roll_number})</span>
-                    </label>
-                  </div>
-                ))}
-              </div>
-            ) : (
-              <p className="text-sm text-gray-500">No volunteers assigned to you</p>
-            )}
-          </div>
-        </div>
+                  </FormControl>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
+
+            <FormField
+              control={form.control}
+              name="description"
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel>Description (Optional)</FormLabel>
+                  <FormControl>
+                    <Textarea
+                      placeholder="Enter any additional notes"
+                      {...field}
+                    />
+                  </FormControl>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
+
+            <Button type="submit" disabled={isLoading}>
+              {isLoading ? "Submitting..." : "Mark Attendance"}
+            </Button>
+          </form>
+        </Form>
       </CardContent>
-      <CardFooter className="flex justify-end">
-        <Button 
-          onClick={handleSubmit} 
-          disabled={!selectedEvent || isSaving}
-        >
-          {isSaving ? 'Saving...' : 'Mark Attendance'}
-        </Button>
-      </CardFooter>
     </Card>
   );
 };

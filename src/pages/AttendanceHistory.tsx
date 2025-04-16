@@ -1,139 +1,158 @@
 
 import React, { useState, useEffect } from 'react';
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { useAuth } from '@/contexts/AuthContext';
 import { supabase } from '@/integrations/supabase/client';
 import Header from '@/components/Header';
 import Footer from '@/components/Footer';
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { toast } from 'sonner';
 
 interface AttendanceRecord {
-  id: string;
+  attendance_id: string;
   event: {
-    id: string;
     title: string;
-    location: string;
-    hours: number;
     start_time: string;
+    location: string | null;
   };
-  status: string;
+  hours_attended: number;
+  description: string | null;
   created_at: string;
 }
 
 const AttendanceHistory = () => {
   const { user } = useAuth();
-  const [attendanceRecords, setAttendanceRecords] = useState<AttendanceRecord[]>([]);
+  const [attendance, setAttendance] = useState<AttendanceRecord[]>([]);
   const [isLoading, setIsLoading] = useState(true);
+  const [totalHours, setTotalHours] = useState(0);
 
-  // Fetch attendance records
   useEffect(() => {
-    const fetchAttendanceRecords = async () => {
+    const fetchAttendanceHistory = async () => {
       if (!user) return;
-
+      
       try {
         const { data, error } = await supabase
           .from('attendance')
           .select(`
-            id,
-            status,
+            attendance_id,
+            hours_attended,
+            description,
             created_at,
             event:event_id (
-              id,
               title,
-              location,
-              hours,
-              start_time
+              start_time,
+              location
             )
           `)
-          .eq('volunteer_id', user.id)
+          .eq('user_id', user.id)
           .order('created_at', { ascending: false });
-
-        if (error) {
-          throw error;
-        }
-
-        setAttendanceRecords(data || []);
+        
+        if (error) throw error;
+        
+        setAttendance(data || []);
+        
+        // Calculate total hours
+        const total = (data || []).reduce((sum, record) => sum + record.hours_attended, 0);
+        setTotalHours(total);
       } catch (error) {
-        console.error('Error fetching attendance records:', error);
+        console.error('Error fetching attendance history:', error);
         toast.error('Failed to load attendance history');
       } finally {
         setIsLoading(false);
       }
     };
-
-    fetchAttendanceRecords();
+    
+    fetchAttendanceHistory();
   }, [user]);
-  
-  // Calculate total hours
-  const totalHours = attendanceRecords.reduce((sum, record) => 
-    sum + (record.event?.hours || 0), 0
-  );
 
   return (
     <div className="flex flex-col min-h-screen bg-gray-50">
       <Header />
       
       <main className="flex-1 p-4 md:p-6">
-        <div className="max-w-4xl mx-auto">
+        <div className="max-w-6xl mx-auto">
           <h1 className="text-2xl font-bold mb-2">Attendance History</h1>
-          <p className="text-gray-500 mb-6">View your attendance records and total service hours</p>
+          <p className="text-gray-500 mb-6">View your attendance records for NSS events</p>
           
-          <div className="grid gap-6">
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-6">
             <Card>
               <CardHeader className="pb-2">
-                <CardTitle>Summary</CardTitle>
+                <CardTitle className="text-xl">Total Hours</CardTitle>
+                <CardDescription>Hours accumulated in NSS activities</CardDescription>
               </CardHeader>
               <CardContent>
-                <div className="grid grid-cols-2 gap-4">
-                  <div className="bg-blue-50 p-4 rounded-lg">
-                    <p className="text-sm text-gray-600">Total Events</p>
-                    <p className="text-2xl font-bold text-nss-primary">{attendanceRecords.length}</p>
-                  </div>
-                  <div className="bg-green-50 p-4 rounded-lg">
-                    <p className="text-sm text-gray-600">Total Hours</p>
-                    <p className="text-2xl font-bold text-green-600">{totalHours}</p>
-                  </div>
-                </div>
+                <p className="text-3xl font-bold text-nss-primary">{totalHours}</p>
               </CardContent>
             </Card>
             
             <Card>
-              <CardHeader>
-                <CardTitle>Attendance Records</CardTitle>
-                <CardDescription>
-                  Your participation in NSS activities
-                </CardDescription>
+              <CardHeader className="pb-2">
+                <CardTitle className="text-xl">Events Attended</CardTitle>
+                <CardDescription>Number of events participated in</CardDescription>
               </CardHeader>
               <CardContent>
-                {isLoading ? (
-                  <p className="text-center py-4">Loading attendance records...</p>
-                ) : attendanceRecords.length > 0 ? (
-                  <div className="space-y-4">
-                    {attendanceRecords.map((record) => (
-                      <div key={record.id} className="p-4 border rounded-lg">
-                        <div className="flex justify-between items-start mb-2">
-                          <h3 className="font-semibold">{record.event?.title}</h3>
-                          <span className="bg-green-100 text-green-800 text-xs px-2 py-1 rounded">
-                            +{record.event?.hours || 0} hours
-                          </span>
-                        </div>
-                        <div className="text-sm text-gray-600">
-                          <p>Date: {new Date(record.event?.start_time).toLocaleDateString()}</p>
-                          <p>Venue: {record.event?.location || 'N/A'}</p>
-                          <p>Status: {record.status}</p>
-                        </div>
-                      </div>
-                    ))}
-                  </div>
+                <p className="text-3xl font-bold text-nss-primary">{attendance.length}</p>
+              </CardContent>
+            </Card>
+            
+            <Card>
+              <CardHeader className="pb-2">
+                <CardTitle className="text-xl">Certification Status</CardTitle>
+                <CardDescription>Based on 120 hours requirement</CardDescription>
+              </CardHeader>
+              <CardContent>
+                {totalHours >= 120 ? (
+                  <p className="text-lg font-medium text-green-600">Eligible for Certificate</p>
                 ) : (
-                  <div className="text-center py-8 text-gray-500">
-                    <p>No attendance records yet</p>
-                    <p className="text-sm">Attend events to view your history here</p>
-                  </div>
+                  <p className="text-lg font-medium text-amber-600">
+                    Need {120 - totalHours} more hours
+                  </p>
                 )}
               </CardContent>
             </Card>
           </div>
+          
+          <Card>
+            <CardHeader>
+              <CardTitle>Attendance Records</CardTitle>
+              <CardDescription>
+                Your participation in NSS events
+              </CardDescription>
+            </CardHeader>
+            <CardContent>
+              {isLoading ? (
+                <p className="text-center py-4">Loading attendance records...</p>
+              ) : attendance.length === 0 ? (
+                <p className="text-center py-4 text-gray-500">No attendance records found</p>
+              ) : (
+                <div className="overflow-x-auto">
+                  <table className="w-full text-sm">
+                    <thead>
+                      <tr className="border-b">
+                        <th className="py-3 px-4 text-left font-medium">Event</th>
+                        <th className="py-3 px-4 text-left font-medium">Date</th>
+                        <th className="py-3 px-4 text-left font-medium">Location</th>
+                        <th className="py-3 px-4 text-left font-medium">Hours</th>
+                        <th className="py-3 px-4 text-left font-medium">Description</th>
+                      </tr>
+                    </thead>
+                    <tbody>
+                      {attendance.map((record) => (
+                        <tr key={record.attendance_id} className="border-b hover:bg-gray-50">
+                          <td className="py-3 px-4">{record.event.title}</td>
+                          <td className="py-3 px-4">
+                            {new Date(record.event.start_time).toLocaleDateString()}
+                          </td>
+                          <td className="py-3 px-4">{record.event.location || 'N/A'}</td>
+                          <td className="py-3 px-4">{record.hours_attended}</td>
+                          <td className="py-3 px-4">{record.description || 'N/A'}</td>
+                        </tr>
+                      ))}
+                    </tbody>
+                  </table>
+                </div>
+              )}
+            </CardContent>
+          </Card>
         </div>
       </main>
       

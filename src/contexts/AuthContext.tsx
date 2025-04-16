@@ -15,6 +15,7 @@ export interface UserData {
   role: UserRole;
   wing?: string;
   roll_number?: string;
+  totalHours?: number;
 }
 
 // Define the context type
@@ -68,6 +69,7 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
 
   const fetchUserProfile = async (userId: string) => {
     try {
+      // Fetch user data from the users table
       const { data, error } = await supabase
         .from('users')
         .select('*')
@@ -78,13 +80,29 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
         console.error('Error fetching user profile:', error);
         setUser(null);
       } else if (data) {
+        // Get total hours for volunteers from mentor_assignments table
+        let totalHours = 0;
+        
+        if (data.role === 'volunteer') {
+          const { data: hoursData, error: hoursError } = await supabase
+            .from('mentor_assignments')
+            .select('total_hours')
+            .eq('volunteer_id', userId)
+            .single();
+            
+          if (!hoursError && hoursData) {
+            totalHours = hoursData.total_hours || 0;
+          }
+        }
+        
         setUser({
           id: data.id,
           name: data.name,
           email: data.email,
           role: data.role as UserRole,
           wing: data.wing,
-          roll_number: data.roll_number
+          roll_number: data.roll_number,
+          totalHours: totalHours
         });
       }
     } catch (error) {
@@ -101,7 +119,7 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
       setIsLoading(true);
       const { data, error } = await supabase.auth.signInWithPassword({
         email,
-        password,
+        password, // Password is the roll_number
       });
 
       if (error) {
